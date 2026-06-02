@@ -4,7 +4,7 @@
 
 JFPYG calは、GoogleカレンダーのデータをA4サイズでの印刷・PDF出力に100%最適化して描画する、ステートレスなマンスリーカレンダー型Webビューアです。
 
-![ogp image](src/ogp-image.png)
+![ogp image](src/public/ogp-image.png)
 
 ## 特徴
 
