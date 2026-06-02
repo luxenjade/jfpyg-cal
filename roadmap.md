@@ -75,6 +75,9 @@ React + shadcn/ui + Vite + TypeScript で実装し、NetlifyのAIビルド分析
 
 Netlifyの強みであるAI分析を活用しながら、世界に公開します。
 
+- [x] **5-0. 紹介ページとプライバシーポリシーの作成**
+  - `react-router-dom` を導入し、`/`, `/app`, `/privacy` のルーティングを設定。
+  - ステートレスであることを明記したプライバシーポリシーを公開。
 - [ ] **5-1. Netlify 上での環境変数設定**
   - Netlifyの管理画面（Site configuration -> Environment variables）に移動。
   - `VITE_GOOGLE_CLIENT_ID` を登録。
