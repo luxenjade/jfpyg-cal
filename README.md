@@ -1,53 +1,68 @@
-# React + Vite
+# JFPYG cal (Just for printing your google calendar)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**「ただ、Googleカレンダーを美しく印刷するためだけに。」**
 
-Currently, two official plugins are available:
+JFPYG calは、GoogleカレンダーのデータをA4サイズでの印刷・PDF出力に100%最適化して描画する、ステートレスなマンスリーカレンダー型Webビューアです。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 特徴
 
-## React Compiler
+- **セキュリティファースト (No DB):** OAuth 2.0 クライアントサイドフローを採用。アクセストークンやカレンダーデータはブラウザのメモリ内のみで処理され、サーバーに保存されることはありません。
+- **複数カレンダー統合:** 選択した複数のカレンダーから予定を取得し、1つのマンスリービューに美しく統合。
+- **A4印刷最適化:** CSS Gridと \`@media print\` により、A4横サイズにピタッと収まるレイアウトを実現。
+- **予定の自動ソート:** 「終日予定を上」「開始時間順」のロジックで、重なりのない見やすい表示。
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## セットアップ
 
-## Expanding the ESLint configuration
+### 1. Google Cloud プロジェクトの設定
 
-If developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1. [Google Cloud Console](https://console.cloud.google.com/) でプロジェクトを作成。
+2. **Google Calendar API** を有効化。
+3. OAuth 同意画面を設定（スコープ: \`https://www.googleapis.com/auth/calendar.readonly\`）。
+4. OAuth 2.0 クライアント ID を作成。
+   - 承認された JavaScript 生成元: \`http://localhost:5173\` (ローカル) および Netlify の URL。
 
-## Running with Docker
+### 2. 環境変数の設定
 
-This project includes Docker support for seamless local development and production building.
+\`.env.local\` ファイルを作成し、クライアントIDを設定します。
 
-### Development Environment
+\`\`\`env
+VITE_GOOGLE_CLIENT_ID=あなたのクライアントID.apps.googleusercontent.com
+\`\`\`
 
-To start the local development server in a Docker container with hot-reloading (HMR) enabled:
+### 3. インストールと起動
 
-```bash
-docker compose up
-```
+\`\`\`bash
+pnpm install
+pnpm dev
+\`\`\`
 
-This will build the development stage of the Docker image and map port `5173`. You can access the app at `http://localhost:5173`.
+## 使い方
 
-To rebuild dependencies (e.g., after modifying `package.json`):
+1. 「Googleでログイン」ボタンからサインイン。
+2. 左側のサイドバーから印刷したいカレンダーを選択。
+3. 必要に応じて「前月」「次月」で月を切り替え。
+4. 「A4 印刷する」ボタンをクリック。
+5. ブラウザの印刷ダイアログで以下の設定を確認してください：
+   - **送信先:** PDFに保存 または プリンター
+   - **方向:** 横
+   - **詳細設定 > 背景のグラフィック:** オン
 
-```bash
-docker compose up --build
-```
+## デプロイ (Netlify)
 
-### Production Build
+1. GitHub リポジトリを Netlify に連携。
+2. 環境変数 \`VITE_GOOGLE_CLIENT_ID\` を設定。
+3. \`NODE_VERSION=22\` を環境変数に追加。
+4. ビルド設定:
+   - Build command: \`npm run build\`
+   - Publish directory: \`dist\`
 
-To build the production-ready Docker image (which serves the compiled static files using Nginx):
+## 技術スタック
 
-```bash
-docker build -t shadcn-demo:latest .
-```
+- React (TypeScript)
+- Vite
+- Tailwind CSS
+- shadcn/ui
+- @react-oauth/google
 
-To run the production build container locally on port `8080`:
-
-```bash
-docker run -d -p 8080:80 --name shadcn-demo-prod shadcn-demo:latest
-```
-
-Then visit `http://localhost:8080`.
-
+---
+JFPYG cal &copy; 2026 - Privacy First, Printing Optimized.
