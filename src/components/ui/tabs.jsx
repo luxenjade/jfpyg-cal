@@ -1,18 +1,6 @@
 import { useState } from "react"
 import { cn } from "../../lib/utils"
 
-const TabsContext = ({ children, defaultValue, className }) => {
-  const [active, setActive] = useState(defaultValue)
-  return (
-    <div className={cn("w-full", className)} data-active={active}>
-      {typeof children === 'function' ? children({ active, setActive }) : 
-        children.map ? children.map(child => 
-          child?.type ? { ...child, props: { ...child.props, active, setActive } } : child
-        ) : children}
-    </div>
-  )
-}
-
 export function Tabs({ defaultValue, className, children }) {
   const [active, setActive] = useState(defaultValue)
   return (
