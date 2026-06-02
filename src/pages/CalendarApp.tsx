@@ -14,7 +14,6 @@ export function CalendarApp() {
   const [selectedCalendarIds, setSelectedCalendarIds] = useState<string[]>([])
   const [events, setEvents] = useState<GoogleCalendarEvent[]>([])
   const [isLoadingCalendars, setIsLoadingCalendars] = useState(false)
-  const [isLoadingEvents, setIsLoadingEvents] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -57,7 +56,6 @@ export function CalendarApp() {
     }
 
     const loadEvents = async () => {
-      setIsLoadingEvents(true)
       const { timeMin, timeMax } = getMonthBoundaries(year, month)
 
       try {
@@ -89,8 +87,6 @@ export function CalendarApp() {
       } catch (error) {
         console.error("Failed to fetch events:", error)
         setErrorMessage("イベントの取得に失敗しました。")
-      } finally {
-        setIsLoadingEvents(false)
       }
     }
 
