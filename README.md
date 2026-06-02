@@ -1,0 +1,53 @@
+# React + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the ESLint configuration
+
+If developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Running with Docker
+
+This project includes Docker support for seamless local development and production building.
+
+### Development Environment
+
+To start the local development server in a Docker container with hot-reloading (HMR) enabled:
+
+```bash
+docker compose up
+```
+
+This will build the development stage of the Docker image and map port `5173`. You can access the app at `http://localhost:5173`.
+
+To rebuild dependencies (e.g., after modifying `package.json`):
+
+```bash
+docker compose up --build
+```
+
+### Production Build
+
+To build the production-ready Docker image (which serves the compiled static files using Nginx):
+
+```bash
+docker build -t shadcn-demo:latest .
+```
+
+To run the production build container locally on port `8080`:
+
+```bash
+docker run -d -p 8080:80 --name shadcn-demo-prod shadcn-demo:latest
+```
+
+Then visit `http://localhost:8080`.
+
