@@ -1,16 +1,16 @@
-import { useMemo } from "react"
-import { getCalendarDays, isSameDay, formatTime } from "../../lib/dateUtils"
-import type { GoogleCalendarEvent } from "../../types/google"
+import { useMemo } from "react";
+import { getCalendarDays, isSameDay, formatTime } from "../../lib/dateUtils";
+import type { GoogleCalendarEvent } from "../../types/google";
 
 type MonthlyGridProps = {
-  year: number
-  month: number
-  events: GoogleCalendarEvent[]
-}
+  year: number;
+  month: number;
+  events: GoogleCalendarEvent[];
+};
 
 export function MonthlyGrid({ year, month, events }: MonthlyGridProps) {
-  const days = useMemo(() => getCalendarDays(year, month), [year, month])
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+  const days = useMemo(() => getCalendarDays(year, month), [year, month]);
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
     <div className="flex flex-col h-full bg-white border border-gray-300 print:border-none p-4 print:p-8">
@@ -19,10 +19,10 @@ export function MonthlyGrid({ year, month, events }: MonthlyGridProps) {
           {year}年 {month + 1}月
         </h2>
         <div className="text-xs text-muted-foreground print:block hidden">
-          JFPYG cal - Created via Google Calendar
+          gcal2paper - Created via Google Calendar
         </div>
       </div>
-      
+
       <div className="flex flex-col flex-1 border-t border-l border-gray-300">
         <div className="grid grid-cols-7 border-b border-gray-300 bg-gray-50/50">
           {dayNames.map((day) => (
@@ -37,13 +37,13 @@ export function MonthlyGrid({ year, month, events }: MonthlyGridProps) {
         <div className="grid grid-cols-7 flex-1">
           {days.map((day, index) => {
             const dayEvents = events.filter((event) => {
-              const start = event.start.dateTime || event.start.date
-              if (!start) return false
-              return isSameDay(new Date(start), day)
-            })
+              const start = event.start.dateTime || event.start.date;
+              if (!start) return false;
+              return isSameDay(new Date(start), day);
+            });
 
-            const isCurrentMonth = day.getMonth() === month
-            const isToday = isSameDay(day, new Date())
+            const isCurrentMonth = day.getMonth() === month;
+            const isToday = isSameDay(day, new Date());
 
             return (
               <div
@@ -65,9 +65,12 @@ export function MonthlyGrid({ year, month, events }: MonthlyGridProps) {
                 </div>
                 <div className="flex-1 overflow-hidden space-y-1">
                   {dayEvents.slice(0, 5).map((event) => {
-                    const isAllDay = !!event.start.date
-                    const startTime = !isAllDay && event.start.dateTime ? formatTime(event.start.dateTime) : null
-                    const bgColor = event.backgroundColor || "#6b7280"
+                    const isAllDay = !!event.start.date;
+                    const startTime =
+                      !isAllDay && event.start.dateTime
+                        ? formatTime(event.start.dateTime)
+                        : null;
+                    const bgColor = event.backgroundColor || "#6b7280";
 
                     return (
                       <div
@@ -79,10 +82,16 @@ export function MonthlyGrid({ year, month, events }: MonthlyGridProps) {
                         }`}
                         style={{ borderLeftColor: bgColor }}
                       >
-                        {startTime && <span className="font-bold opacity-80 shrink-0 text-[9px]">{startTime}</span>}
-                        <span className="truncate font-medium">{event.summary}</span>
+                        {startTime && (
+                          <span className="font-bold opacity-80 shrink-0 text-[9px]">
+                            {startTime}
+                          </span>
+                        )}
+                        <span className="truncate font-medium">
+                          {event.summary}
+                        </span>
                       </div>
-                    )
+                    );
                   })}
                   {dayEvents.length > 5 && (
                     <div className="text-[9px] text-gray-400 text-center font-bold">
@@ -91,10 +100,10 @@ export function MonthlyGrid({ year, month, events }: MonthlyGridProps) {
                   )}
                 </div>
               </div>
-            )
+            );
           })}
         </div>
       </div>
     </div>
-  )
+  );
 }

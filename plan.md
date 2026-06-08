@@ -1,4 +1,4 @@
-# JFPYG cal 実装計画（roadmap.md ベース）
+# gcal2paper 実装計画（roadmap.md ベース）
 
 ## 0. 現状整理（2026-06-02時点）
 
@@ -14,6 +14,7 @@
 ## 2. フェーズ別の具体計画
 
 ### フェーズ1〜4: 完了
+
 - Vite + TypeScript + Tailwind + shadcn/ui 環境構築。
 - Google API 連携（OAuth, CalendarList, Events）。
 - マンスリー統合描画ロジック。
@@ -22,12 +23,14 @@
 ### フェーズ5: Netlifyデプロイと最終検証（未完了）
 
 #### 作業
+
 - Netlify に `VITE_GOOGLE_CLIENT_ID` と `NODE_VERSION=22` を設定。
 - GitHub 連携してデプロイ。
 - OAuth 設定に本番 URL を追加。
 - 実機で最終検証。
 
 #### 完了条件
+
 - 本番 URL でログインから印刷まで一連動作が成功。
 
 ## 3. 残タスク

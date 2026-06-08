@@ -1,8 +1,8 @@
-# JFPYG cal (Just for printing your google calendar)
+# gcal2paper (Google Calendar to paper)
 
 **「ただ、Googleカレンダーを美しく印刷するためだけに。」**
 
-JFPYG calは、GoogleカレンダーのデータをA4サイズでの印刷・PDF出力に100%最適化して描画する、ステートレスなマンスリーカレンダー型Webビューアです。
+gcal2paperは、GoogleカレンダーのデータをA4サイズでの印刷・PDF出力に100%最適化して描画する、ステートレスなマンスリーカレンダー型Webビューアです。
 
 ![ogp image](src/public/ogp-image.png)
 
@@ -68,4 +68,4 @@ pnpm dev
 
 ---
 
-JFPYG cal &copy; 2026 - Privacy First, Printing Optimized.
+gcal2paper &copy; 2026 - Privacy First, Printing Optimized.

@@ -19,7 +19,7 @@ export function Intro() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
             <Calendar className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold tracking-tight">JFPYG cal</h1>
+            <h1 className="text-xl font-bold tracking-tight">gcal2paper</h1>
           </div>
           <Button onClick={() => navigate("/app")}>使ってみる</Button>
         </div>
@@ -33,8 +33,7 @@ export function Intro() {
               「ただ、Googleカレンダーを美しく印刷するためだけに。」
             </h2>
             <p className="text-xl text-muted-foreground">
-              JFPYG
-              calは、GoogleカレンダーのデータをA4サイズでの印刷・PDF出力に100%最適化して描画する、ステートレスなマンスリーカレンダー型Webビューアです。
+              gcal2paperは、GoogleカレンダーのデータをA4サイズでの印刷・PDF出力に100%最適化して描画する、ステートレスなマンスリーカレンダー型Webビューアです。
             </p>
             <div className="flex justify-center gap-4">
               <Button size="lg" onClick={() => navigate("/app")}>
@@ -160,7 +159,7 @@ export function Intro() {
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-muted-foreground" />
             <span className="font-semibold text-muted-foreground">
-              JFPYG cal
+              gcal2paper
             </span>
           </div>
           <div className="flex gap-8 text-sm text-muted-foreground">
@@ -168,7 +167,7 @@ export function Intro() {
               プライバシーポリシー
             </Link>
             <a
-              href="https://github.com/luxenjade/jfpyg-cal"
+              href="https://github.com/luxenjade/gcal2paper-cal"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:underline"
@@ -177,7 +176,7 @@ export function Intro() {
             </a>
           </div>
           <p className="text-xs text-muted-foreground">
-            &copy; 2026 JFPYG cal - Privacy First.
+            &copy; 2026 gcal2paper - Privacy First.
           </p>
         </div>
       </footer>

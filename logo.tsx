@@ -12,11 +12,11 @@ export const AppLogo = () => {
       {/* テキストエリア：メリハリをつけたタイポグラフィ */}
       <div className="flex flex-col leading-none">
         <span className="text-lg font-black tracking-tight text-foreground">
-          JFPYG{" "}
+          gcal2paper{" "}
           <span className="text-muted-foreground font-medium text-sm">cal</span>
         </span>
         <span className="text-[9px] text-muted-foreground font-medium tracking-wider mt-0.5 uppercase">
-          Just For Printing
+          Google Calendar to paper
         </span>
       </div>
     </div>

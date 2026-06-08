@@ -1,134 +1,203 @@
-import { useEffect, useMemo, useState } from "react"
-import { Link } from "react-router-dom"
-import { useGoogleLogin } from "@react-oauth/google"
-import { Button } from "../components/ui/button"
-import { Separator } from "../components/ui/separator"
-import { MonthlyGrid } from "../components/calendar/MonthlyGrid"
-import { fetchCalendarList, fetchEvents, revokeToken } from "../lib/googleCalendar"
-import { getMonthBoundaries } from "../lib/dateUtils"
-import type { GoogleAccessTokenResponse, GoogleCalendarEvent, GoogleCalendarListEntry } from "../types/google"
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { useGoogleLogin } from "@react-oauth/google";
+import { Button } from "../components/ui/button";
+import { Separator } from "../components/ui/separator";
+import { MonthlyGrid } from "../components/calendar/MonthlyGrid";
+import {
+  fetchCalendarList,
+  fetchEvents,
+  revokeToken,
+} from "../lib/googleCalendar";
+import { getMonthBoundaries } from "../lib/dateUtils";
+import type {
+  GoogleAccessTokenResponse,
+  GoogleCalendarEvent,
+  GoogleCalendarListEntry,
+} from "../types/google";
 
 export function CalendarApp() {
-  const [accessToken, setAccessToken] = useState<string | null>(null)
-  const [calendars, setCalendars] = useState<GoogleCalendarListEntry[]>([])
-  const [selectedCalendarIds, setSelectedCalendarIds] = useState<string[]>([])
-  const [events, setEvents] = useState<GoogleCalendarEvent[]>([])
-  const [isLoadingCalendars, setIsLoadingCalendars] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [accessToken, setAccessToken] = useState<string | null>(() => {
+    return sessionStorage.getItem("gcal_access_token");
+  });
+  const [calendars, setCalendars] = useState<GoogleCalendarListEntry[]>([]);
+  const [selectedCalendarIds, setSelectedCalendarIds] = useState<string[]>([]);
+  const [events, setEvents] = useState<GoogleCalendarEvent[]>([]);
+  const [isLoadingCalendars, setIsLoadingCalendars] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const year = currentDate.getFullYear()
-  const month = currentDate.getMonth()
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
 
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
-  const isClientIdConfigured = Boolean(clientId)
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const isClientIdConfigured = Boolean(clientId);
+
+  // Fetch calendars when accessToken changes
+  useEffect(() => {
+    if (!accessToken) {
+      return;
+    }
+
+    let active = true;
+
+    const loadCalendars = async () => {
+      setIsLoadingCalendars(true);
+      setErrorMessage(null);
+
+      try {
+        const items = await fetchCalendarList(accessToken);
+        if (!active) return;
+        setCalendars(items);
+
+        // Restore selected calendar IDs from sessionStorage if available
+        const savedIds = sessionStorage.getItem("gcal_selected_calendar_ids");
+        if (savedIds) {
+          setSelectedCalendarIds(JSON.parse(savedIds));
+        } else {
+          setSelectedCalendarIds(
+            items
+              .filter((item) => item.selected || item.primary)
+              .map((item) => item.id),
+          );
+        }
+      } catch {
+        if (active) {
+          setAccessToken(null);
+          sessionStorage.removeItem("gcal_access_token");
+          sessionStorage.removeItem("gcal_selected_calendar_ids");
+          setCalendars([]);
+          setSelectedCalendarIds([]);
+          setErrorMessage(
+            "カレンダー一覧の取得に失敗しました。再ログインしてください。",
+          );
+        }
+      } finally {
+        if (active) {
+          setIsLoadingCalendars(false);
+        }
+      }
+    };
+
+    loadCalendars();
+
+    return () => {
+      active = false;
+    };
+  }, [accessToken]);
 
   const login = useGoogleLogin({
     scope: "https://www.googleapis.com/auth/calendar.readonly",
-    onSuccess: async (tokenResponse: Omit<GoogleAccessTokenResponse, "token_type">) => {
-      setErrorMessage(null)
-      setIsLoadingCalendars(true)
-
-      try {
-        const items = await fetchCalendarList(tokenResponse.access_token)
-        setAccessToken(tokenResponse.access_token)
-        setCalendars(items)
-        setSelectedCalendarIds(items.filter((item) => item.selected || item.primary).map((item) => item.id))
-      } catch {
-        setAccessToken(null)
-        setCalendars([])
-        setSelectedCalendarIds([])
-        setErrorMessage("カレンダー一覧の取得に失敗しました。再ログインしてください。")
-      } finally {
-        setIsLoadingCalendars(false)
-      }
+    ux_mode: "popup",
+    onSuccess: (
+      tokenResponse: Omit<GoogleAccessTokenResponse, "token_type">,
+    ) => {
+      setErrorMessage(null);
+      setAccessToken(tokenResponse.access_token);
+      sessionStorage.setItem("gcal_access_token", tokenResponse.access_token);
     },
     onError: () => {
-      setErrorMessage("Googleログインに失敗しました。再度お試しください。")
+      setErrorMessage("Googleログインに失敗しました。再度お試しください。");
     },
-  })
+  });
 
   // Fetch events when selected calendars or month changes
   useEffect(() => {
-    if (!accessToken || selectedCalendarIds.length === 0) {
-      setEvents([])
-      return
-    }
+    let active = true;
 
     const loadEvents = async () => {
-      const { timeMin, timeMax } = getMonthBoundaries(year, month)
+      if (!accessToken || selectedCalendarIds.length === 0) {
+        if (active) {
+          setEvents([]);
+        }
+        return;
+      }
+
+      const { timeMin, timeMax } = getMonthBoundaries(year, month);
 
       try {
         const allEventsPromises = selectedCalendarIds.map(async (id) => {
-          const calendar = calendars.find((c) => c.id === id)
-          const items = await fetchEvents(accessToken, id, timeMin, timeMax)
+          const calendar = calendars.find((c) => c.id === id);
+          const items = await fetchEvents(accessToken, id, timeMin, timeMax);
           // Inject calendar background color if not present on event
           return items.map((item) => ({
             ...item,
             backgroundColor: item.backgroundColor || calendar?.backgroundColor,
-          }))
-        })
+          }));
+        });
 
-        const results = await Promise.all(allEventsPromises)
-        const mergedEvents = results.flat()
+        const results = await Promise.all(allEventsPromises);
+        const mergedEvents = results.flat();
 
         // Sort: All-day events first, then by start time
         mergedEvents.sort((a, b) => {
-          const aStart = a.start.dateTime || a.start.date || ""
-          const bStart = b.start.dateTime || b.start.date || ""
-          
-          if (!!a.start.date && !b.start.date) return -1
-          if (!a.start.date && !!b.start.date) return 1
-          
-          return aStart.localeCompare(bStart)
-        })
+          const aStart = a.start.dateTime || a.start.date || "";
+          const bStart = b.start.dateTime || b.start.date || "";
 
-        setEvents(mergedEvents)
+          if (!!a.start.date && !b.start.date) return -1;
+          if (!a.start.date && !!b.start.date) return 1;
+
+          return aStart.localeCompare(bStart);
+        });
+
+        if (active) {
+          setEvents(mergedEvents);
+        }
       } catch (error) {
-        console.error("Failed to fetch events:", error)
-        setErrorMessage("イベントの取得に失敗しました。")
+        console.error("Failed to fetch events:", error);
+        if (active) {
+          setErrorMessage("イベントの取得に失敗しました。");
+        }
       }
-    }
+    };
 
-    loadEvents()
-  }, [accessToken, selectedCalendarIds, year, month, calendars])
+    loadEvents();
+
+    return () => {
+      active = false;
+    };
+  }, [accessToken, selectedCalendarIds, year, month, calendars]);
 
   const toggleCalendar = (calendarId: string) => {
-    setSelectedCalendarIds((previous) =>
-      previous.includes(calendarId)
+    setSelectedCalendarIds((previous) => {
+      const next = previous.includes(calendarId)
         ? previous.filter((id) => id !== calendarId)
-        : [...previous, calendarId],
-    )
-  }
+        : [...previous, calendarId];
+      sessionStorage.setItem("gcal_selected_calendar_ids", JSON.stringify(next));
+      return next;
+    });
+  };
 
   const changeMonth = (offset: number) => {
     setCurrentDate((prev) => {
-      const next = new Date(prev)
-      next.setMonth(next.getMonth() + offset)
-      return next
-    })
-  }
+      const next = new Date(prev);
+      next.setMonth(next.getMonth() + offset);
+      return next;
+    });
+  };
 
   const primaryCalendar = useMemo(
     () => calendars.find((calendar) => calendar.primary),
     [calendars],
-  )
+  );
 
   const handleLogout = async () => {
     if (accessToken) {
-      await revokeToken(accessToken)
+      await revokeToken(accessToken);
     }
-    setAccessToken(null)
-    setCalendars([])
-    setSelectedCalendarIds([])
-    setEvents([])
-    setIsLoadingCalendars(false)
-    setErrorMessage(null)
-  }
+    sessionStorage.removeItem("gcal_access_token");
+    sessionStorage.removeItem("gcal_selected_calendar_ids");
+    setAccessToken(null);
+    setCalendars([]);
+    setSelectedCalendarIds([]);
+    setEvents([]);
+    setIsLoadingCalendars(false);
+    setErrorMessage(null);
+  };
 
   const handlePrint = () => {
-    window.print()
-  }
+    window.print();
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -136,19 +205,29 @@ export function CalendarApp() {
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-base font-semibold tracking-tight">JFPYG cal</h1>
+              <h1 className="text-base font-semibold tracking-tight">
+                gcal2paper
+              </h1>
               <p className="text-xs text-muted-foreground">
-                Just for printing your google calendar
+                Google Calendar to paper
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {accessToken ? (
-              <Button size="sm" variant="outline" onClick={() => void handleLogout()}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => void handleLogout()}
+              >
                 ログアウト
               </Button>
             ) : (
-              <Button size="sm" onClick={() => login()} disabled={!isClientIdConfigured}>
+              <Button
+                size="sm"
+                onClick={() => login()}
+                disabled={!isClientIdConfigured}
+              >
                 Googleでログイン
               </Button>
             )}
@@ -161,9 +240,23 @@ export function CalendarApp() {
           <section className="rounded-lg border bg-card p-4">
             <h2 className="text-sm font-semibold">表示月</h2>
             <div className="mt-3 flex items-center justify-between">
-              <Button variant="outline" size="sm" onClick={() => changeMonth(-1)}>前月</Button>
-              <span className="text-sm font-medium">{year}年 {month + 1}月</span>
-              <Button variant="outline" size="sm" onClick={() => changeMonth(1)}>次月</Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => changeMonth(-1)}
+              >
+                前月
+              </Button>
+              <span className="text-sm font-medium">
+                {year}年 {month + 1}月
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => changeMonth(1)}
+              >
+                次月
+              </Button>
             </div>
           </section>
 
@@ -195,7 +288,10 @@ export function CalendarApp() {
                 </p>
               )}
               {calendars.map((calendar) => (
-                <label key={calendar.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1 rounded transition-colors">
+                <label
+                  key={calendar.id}
+                  className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1 rounded transition-colors"
+                >
                   <input
                     type="checkbox"
                     className="h-4 w-4 rounded border-gray-300"
@@ -204,7 +300,9 @@ export function CalendarApp() {
                   />
                   <span
                     className="inline-block h-2 w-2 rounded-full shrink-0"
-                    style={{ backgroundColor: calendar.backgroundColor ?? "#6b7280" }}
+                    style={{
+                      backgroundColor: calendar.backgroundColor ?? "#6b7280",
+                    }}
                   />
                   <span className="truncate text-xs">{calendar.summary}</span>
                 </label>
@@ -212,8 +310,8 @@ export function CalendarApp() {
             </div>
           </section>
 
-          <Button 
-            className="w-full" 
+          <Button
+            className="w-full"
             onClick={handlePrint}
             disabled={!accessToken || selectedCalendarIds.length === 0}
           >
@@ -236,15 +334,21 @@ export function CalendarApp() {
 
       <footer className="border-t py-4 bg-muted/20 print:hidden">
         <div className="mx-auto max-w-7xl px-4 flex justify-between items-center text-[10px] text-muted-foreground">
-          <p>JFPYG cal &copy; 2026 - No database, Privacy first.</p>
+          <p>gcal2paper &copy; 2026 - No database, Privacy first.</p>
           <div className="flex gap-4">
-            <Link to="/" className="hover:underline">トップページ</Link>
-            <Link to="/privacy" className="hover:underline">プライバシーポリシー</Link>
+            <Link to="/" className="hover:underline">
+              トップページ
+            </Link>
+            <Link to="/privacy" className="hover:underline">
+              プライバシーポリシー
+            </Link>
           </div>
         </div>
       </footer>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         @media print {
           @page {
             size: A4 landscape;
@@ -266,7 +370,9 @@ export function CalendarApp() {
             -webkit-print-color-adjust: exact;
           }
         }
-      ` }} />
+      `,
+        }}
+      />
     </div>
-  )
+  );
 }
