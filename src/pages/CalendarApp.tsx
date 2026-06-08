@@ -17,8 +17,12 @@ import type {
 } from "../types/google";
 
 export function CalendarApp() {
+  // TODO(security): Storing OAuth tokens in localStorage/sessionStorage exposes them to XSS theft.
+  // Because this is a purely stateless client-side-only app, there is no backend server or BFF to
+  // store or verify tokens via secure HttpOnly cookies. We use localStorage to satisfy the request
+  // to persist user logins across browser restarts.
   const [accessToken, setAccessToken] = useState<string | null>(() => {
-    return sessionStorage.getItem("gcal_access_token");
+    return localStorage.getItem("gcal_access_token");
   });
   const [calendars, setCalendars] = useState<GoogleCalendarListEntry[]>([]);
   const [selectedCalendarIds, setSelectedCalendarIds] = useState<string[]>([]);
@@ -50,8 +54,8 @@ export function CalendarApp() {
         if (!active) return;
         setCalendars(items);
 
-        // Restore selected calendar IDs from sessionStorage if available
-        const savedIds = sessionStorage.getItem("gcal_selected_calendar_ids");
+        // Restore selected calendar IDs from localStorage if available
+        const savedIds = localStorage.getItem("gcal_selected_calendar_ids");
         if (savedIds) {
           setSelectedCalendarIds(JSON.parse(savedIds));
         } else {
@@ -64,8 +68,8 @@ export function CalendarApp() {
       } catch {
         if (active) {
           setAccessToken(null);
-          sessionStorage.removeItem("gcal_access_token");
-          sessionStorage.removeItem("gcal_selected_calendar_ids");
+          localStorage.removeItem("gcal_access_token");
+          localStorage.removeItem("gcal_selected_calendar_ids");
           setCalendars([]);
           setSelectedCalendarIds([]);
           setErrorMessage(
@@ -94,7 +98,7 @@ export function CalendarApp() {
     ) => {
       setErrorMessage(null);
       setAccessToken(tokenResponse.access_token);
-      sessionStorage.setItem("gcal_access_token", tokenResponse.access_token);
+      localStorage.setItem("gcal_access_token", tokenResponse.access_token);
     },
     onError: () => {
       setErrorMessage("Googleログインに失敗しました。再度お試しください。");
@@ -163,7 +167,7 @@ export function CalendarApp() {
       const next = previous.includes(calendarId)
         ? previous.filter((id) => id !== calendarId)
         : [...previous, calendarId];
-      sessionStorage.setItem("gcal_selected_calendar_ids", JSON.stringify(next));
+      localStorage.setItem("gcal_selected_calendar_ids", JSON.stringify(next));
       return next;
     });
   };
@@ -185,8 +189,8 @@ export function CalendarApp() {
     if (accessToken) {
       await revokeToken(accessToken);
     }
-    sessionStorage.removeItem("gcal_access_token");
-    sessionStorage.removeItem("gcal_selected_calendar_ids");
+    localStorage.removeItem("gcal_access_token");
+    localStorage.removeItem("gcal_selected_calendar_ids");
     setAccessToken(null);
     setCalendars([]);
     setSelectedCalendarIds([]);
